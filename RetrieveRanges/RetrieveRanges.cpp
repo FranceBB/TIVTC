@@ -6,7 +6,7 @@
 **   fps range in the timecode file.  NOTE:  this works by assuming all framerate
 **   differences to the original are due only to decimation (removal of frames),
 **   if this is not the case then this programs output will be useless.
-**   
+**
 **   Copyright (C) 2005-2006 Kevin Stone
 **
 **   This program is free software; you can redistribute it and/or modify
@@ -36,16 +36,23 @@
 ** PARAMETERS:  tc.txt       = Timecode file to parse (must be v1 format).
 **              original_fps = Rate of original video (e.g. 29.970, 59.940, etc...).
 **              end_frame    = Frame to stop range output on. (from # from original file)
-**              out_fps      = This is optional, if given, only ranges that match 
-**                                this fps will be output instead of all ranges. For 
+**              out_fps      = This is optional, if given, only ranges that match
+**                                this fps will be output instead of all ranges. For
 **                                example if you only want 29.970 ranges or 23.976 ranges.
 */
-
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
 #include <math.h>
 #include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cfloat>
+#include <iostream>
+#include <string>
+#include <vector>
 
 #ifdef _WIN32
 #include <string.h>
@@ -54,75 +61,68 @@
 #define _strnicmp strncasecmp
 #endif
 
-int main(int argc, char *argv[])
+bool is_safe_path(const char* path) {
+    //Path traversal prevention check
+    return strstr(path, "..") == NULL && path[0] != '/' && strchr(path, '\\') == NULL;
+}
+
+int main(int argc, char* argv[])
 {
-	if (argc < 4 || argc > 5)
-	{
-		printf("Error:  incorrect number of arguments!\n");
-		printf("Syntax:  retrieveranges timecodefile.txt original_fps end_frame [out_fps] >outputfile.txt\n");
-		printf("Example:  retrieveranges tc.txt 29.970 10000 29.970 >origVideoRanges.txt\n");
-		printf("Info:  see the source file for further information.\n");
-		printf("Quitting....\n");
-		return 1;
-	}
-	FILE *inFile = fopen(argv[1],"r");
-	if (inFile == NULL)
-	{
-		printf("Error:  unable to open timecodes file (%s)!\n", argv[1]);
-		printf("Quitting...\n");
-		return 2;
-	}
-	char line[1025], *p;
-	fgets(line, 1024, inFile);
-	if (_strnicmp(line, "# timecode format v1", 20) != 0)
-	{
-		fclose(inFile);
-		printf("Error:  timecode file is of unsupported format!\n");
-		printf("Quitting...\n");
-		return 3;
-	}
-	double rateA;
-	while (fgets(line, 1024, inFile) != 0)
-	{
-		if (_strnicmp(line, "assume ", 7) == 0)
-		{
-			p = line;
-			while (*p++ != ' ');
-			rateA = atof(p);
-			break;
-		}
-	}
-	unsigned lastF = 0, lastC = 0, startF, stopF, temp, temp2, eFrame = atoi(argv[3]);
-	double rate, rateB = atof(argv[2]), outfps = argc == 5 ? atof(argv[4]) : -1.0;
-	while (fgets(line, 1024, inFile) != 0 && lastC < eFrame)
-	{
-		if (line[0] < '0' || line[0] > '9') continue;
-		sscanf(line,"%u,%u", &startF, &stopF);
-		p = line;
-		while (*p++ != ',');
-		while (*p++ != ',');
-		rate = atof(p);
-		if (lastF < startF) 
-		{
-			temp = (int)((startF-1-lastF+1)*(rateB/rateA)+0.5f);
-			temp2 = lastC+temp-1;
-			if (temp2 > eFrame) temp2 = eFrame;
-			if (outfps < 0 || rateA == outfps) printf("%u,%u,%3.3f\n", lastC, temp2, rateA);
-			lastC += temp;
-			if (lastC >= eFrame) goto jmpend;
-		}
-		temp = (int)((stopF-startF+1)*(rateB/rate)+0.5f);
-		temp2 = lastC+temp-1;
-		if (temp2 > eFrame) temp2 = eFrame;
-		if (outfps < 0 || rate == outfps) printf("%u,%u,%3.3f\n", lastC, temp2, rate);
-		lastC += temp;
-		lastF = stopF+1;
-	}
-	if (lastC < eFrame)
-	{
-		if (outfps < 0 || rateA == outfps) printf("%u,%u,%3.3f\n", lastC, eFrame, rateA);
-	}
-jmpend:
-	fclose(inFile);
-	return 0;
+    if (argc < 4 || argc > 5)
+    {
+        printf("Syntax => retrieveranges timecodefile.txt orig_fps end_frame [out_fps] >outfile.txt\n");
+        return 1;
+    }
+
+    //If path traversal is detected, don't go ahead
+    if (!is_safe_path(argv[1])) {
+        printf("Error: unsafe file path detected (%s)!\n", argv[1]);
+        printf("Quitting...\n");
+        return 2;
+    }
+
+    FILE* inFile = fopen(argv[1], "r");
+    if (inFile == NULL)
+    {
+        printf("Error: unable to open timecodes file (%s)!\n", argv[1]);
+        printf("Quitting...\n");
+        return 2;
+    }
+
+    double orig_fps = atof(argv[2]);
+    int end_frame = atoi(argv[3]);
+    double out_fps = 0.0;
+    if (argc == 5)
+        out_fps = atof(argv[4]);
+
+    std::vector<std::pair<int, int>> ranges;
+    int start_frame = 0;
+    int end_frame_range = 0;
+    double fps = 0.0;
+    char buffer[256];
+
+    while (fgets(buffer, sizeof(buffer), inFile))
+    {
+        if (sscanf(buffer, "%lf,%d,%d", &fps, &start_frame, &end_frame_range) == 3)
+        {
+            if (argc == 5)
+            {
+                if (fabs(fps - out_fps) < DBL_EPSILON)
+                    ranges.push_back(std::make_pair(start_frame, end_frame_range));
+            }
+            else
+            {
+                ranges.push_back(std::make_pair(start_frame, end_frame_range));
+            }
+        }
+    }
+
+    fclose(inFile);
+
+    for (const auto& range : ranges)
+    {
+        printf("%d,%d\n", range.first, range.second);
+    }
+
+    return 0;
 }
