@@ -1,12 +1,19 @@
 ## TIVTC
 
-**v1.0.30 (20250527) - WIP
+**v1.0.31 (20260304)
+- Optimize slow > 0: SSE4.1 and AVX2 implementation (buildDiffMapPlane_Planar from TFM::compareFieldsSlow)
+- Fix #20: RequestLinear internal error (jump forward in an editor, step back 4 times)
+
+**v1.0.30 (20251210)
 - TDecimate: add dclip parameter - a denoised clip for metrics calculation only.
   See #27: https://github.com/pinterf/TIVTC/issues/27
 - TDecimate: Allow hybrid=1 scenechange decimation strategy when hybrid=0, new parameter "sceneDec"
   For mode 0 and 1.
   See #50: https://github.com/pinterf/TIVTC/pull/50 (flossy83)
   See also #27 for mode 1 extension
+- TDecimate: Alternate strategy for TDecimate mode 1, lowDec parameter
+  See #58: https://github.com/pinterf/TIVTC/pull/58 (flossy83)
+- TFM: (#27) add dclip as an optional denoised clip for analyzing
 
 **v1.0.29 (20240302)
 - TDecimate: allow noblend=true when hybrid=1, noblend default value is false when hybrid=1 to keep 

@@ -56,13 +56,13 @@ AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
     "[debug]b[display]b[slow]i[mChroma]b[cNum]i[cthresh]i[MI]i" \
     "[chroma]b[blockx]i[blocky]i[y0]i[y1]i[mthresh]i[clip2]c[d2v]s" \
     "[ovrDefault]i[flags]i[scthresh]f[micout]i[micmatching]i[trimIn]s" \
-    "[hint]b[metric]i[batch]b[ubsco]b[mmsco]b[opt]i", Create_TFM, 0);
+    "[hint]b[metric]i[batch]b[ubsco]b[mmsco]b[opt]i[dclip]c", Create_TFM, 0);
   env->AddFunction("TDecimate", "c[mode]i[cycleR]i[cycle]i[rate]f[dupThresh]f[vidThresh]f" \
     "[sceneThresh]f[hybrid]i[vidDetect]i[conCycle]i[conCycleTP]i" \
     "[ovr]s[output]s[input]s[tfmIn]s[mkvOut]s[nt]i[blockx]i" \
     "[blocky]i[debug]b[display]b[vfrDec]i[batch]b[tcfv1]b[se]b" \
     "[chroma]b[exPP]b[maxndl]i[m2PA]b[denoise]b[noblend]b[ssd]b" \
-    "[hint]b[clip2]c[sdlim]i[opt]i[orgOut]s[displayDecimation]i[displayOpt]i[dclip]c[sceneDec]b", Create_TDecimate, 0);
+    "[hint]b[clip2]c[sdlim]i[opt]i[orgOut]s[displayDecimation]i[displayOpt]i[dclip]c[sceneDec]b[lowDec]b", Create_TDecimate, 0);
   env->AddFunction("MergeHints", "c[hintClip]c[debug]b", Create_MergeHints, 0);
   env->AddFunction("FieldDiff", "c[nt]i[chroma]b[display]b[debug]b[sse]b[opt]i",
     Create_FieldDiff, 0);

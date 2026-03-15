@@ -39,7 +39,7 @@
 
 #define VERSION "v1.0.12"
 
-// Custom deleter for _aligned_free, becasue it's a macro
+// Custom deleter for _aligned_free, because it's a macro
 // and cannot be passed as a custom deleter address
 static void AlignedDeleter(void *ptr) {
   _aligned_free(ptr);
@@ -98,7 +98,16 @@ private:
   int conCycleTP;
   int vidDetect;
   double sceneThresh;
-  bool sceneDec; 
+  bool sceneDec;
+  bool lowDec;  
+  int lowDecDebug0 = -1;
+  int lowDecDebug1 = -1;
+  int lowDecDebug2 = -1;
+  int lowDecDebug3 = -1;
+  int lowDecDebug4 = -1;
+  int lowDecDebug5 = -1;
+  int lowDecDebug6 = -1;
+  int lowDecDebug7 = -1;
   int conCycle;
   std::string ovr;
   std::string input;
@@ -229,7 +238,7 @@ public:
     bool _batch, bool _tcfv1, bool _se, bool _chroma, bool _exPP, int _maxndl,
     bool _m2PA, bool _predenoise, bool _noblend, bool _ssd, int _usehints,
     PClip _clip2, int _sdlim, int _opt, const char* _orgOut, int _displayDecimation, int _displayOpt, 
-    PClip _dclip, bool _sceneDec, 
+    PClip _dclip, bool _sceneDec, bool _lowDec,
     IScriptEnvironment* env);
   ~TDecimate();
 
